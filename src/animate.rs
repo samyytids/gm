@@ -71,7 +71,6 @@ fn advance_animation(
     atlas.index = if indices.tracker == indices.indices.len() - 1 {
         indices.tracker = 1;
         indices.indices[indices.tracker]
-        
     } else {
         indices.tracker =  indices.tracker + 1;
         indices.indices[indices.tracker]
@@ -89,33 +88,33 @@ pub fn animate_sprite(
     >,
 ) {
     for (
-        mut indices, 
+        mut animation, 
         mut timer, 
         mut atlas
     ) in &mut query {
         timer.tick(time.delta());
         if timer.just_finished() {
-            match indices.active_animation {
+            match animation.active_animation {
                 movement::Direction::UP => {
-                    if indices.step == 0 {
-                        advance_animation(&mut atlas, &mut indices.up1)
+                    if animation.step == 0 {
+                        advance_animation(&mut atlas, &mut animation.up1)
                     } else {
-                        advance_animation(&mut atlas, &mut indices.up2)
+                        advance_animation(&mut atlas, &mut animation.up2)
                     }
                     
                 },
                 movement::Direction::LEFT => {
-                    advance_animation(&mut atlas, &mut indices.left)
+                    advance_animation(&mut atlas, &mut animation.left)
                 },
                 movement::Direction::DOWN => {
-                    if indices.step == 0 {
-                        advance_animation(&mut atlas, &mut indices.down1)
+                    if animation.step == 0 {
+                        advance_animation(&mut atlas, &mut animation.down1)
                     } else {
-                        advance_animation(&mut atlas, &mut indices.down2)
+                        advance_animation(&mut atlas, &mut animation.down2)
                     }
                 },
                 movement::Direction::RIGHT => {
-                    advance_animation(&mut atlas, &mut indices.right)
+                    advance_animation(&mut atlas, &mut animation.right)
                 },
             }
         }
@@ -171,7 +170,6 @@ fn set_animation(
 
     }
     indices.active_animation = direction;
-    
 }
 
 pub fn update_animation(

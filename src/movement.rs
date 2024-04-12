@@ -1,9 +1,9 @@
 use core::fmt;
 
 use bevy::prelude::*;
-use bevy::input::*;
-
 use crate::*;
+
+use self::animate::{AnimationTimer, WalkingAnimations};
 
 #[derive(Component, Clone, Copy)]
 pub enum Direction {
@@ -16,12 +16,14 @@ pub enum Direction {
 #[derive(Component, Copy, Clone)]
 pub struct Moving{
     pub distance: f32,
+    pub finished: bool,
 }
 
 impl Moving {
     pub fn default() -> Self {
         Moving {
             distance: 0.0,
+            finished: false,
         }
     }
 }
@@ -37,24 +39,41 @@ impl fmt::Display for Direction {
     }
 }
 
+pub fn check_something(
+    query: Query<(&Visibility, &WalkingAnimations, &Transform)>
+) {
+    
+    for (_, _, transform) in query.iter() {
+        println!("x: {}, y: {}, z: {}", transform.translation.x, transform.translation.y, transform.translation.z);
+    }
+}
+
 pub fn set_player_direction(
-    mut keys: EventReader<keyboard::KeyboardInput>,
+    keys: Res<ButtonInput<KeyCode>>,
     mut commands: Commands,
     player: Query<Entity, (With<setup::Player>, Without<Moving>)>,
 ) {
     for entity in player.iter() {
         let mut direction: Option<Direction> = None;
-        for key_press in keys.read() {
-            direction = match (key_press.state, key_press.key_code) {
-                (ButtonState::Pressed, KeyCode::KeyW) => Some(Direction::UP),
-                (ButtonState::Pressed, KeyCode::KeyA) => Some(Direction::LEFT),
-                (ButtonState::Pressed, KeyCode::KeyS) => Some(Direction::DOWN),
-                (ButtonState::Pressed, KeyCode::KeyD) => Some(Direction::RIGHT),
-                _ => None,
-            };
-            if direction.is_some() {
-                break;
-            }
+        if keys.just_pressed(KeyCode::KeyW) 
+            || keys.pressed(KeyCode::KeyW) {
+
+            direction = Some(Direction::UP);
+
+        } else if keys.just_pressed(KeyCode::KeyA) 
+            || keys.pressed(KeyCode::KeyA) {
+
+            direction = Some(Direction::LEFT);
+
+        } else if keys.just_pressed(KeyCode::KeyS) 
+            || keys.pressed(KeyCode::KeyS) {
+
+            direction = Some(Direction::DOWN);
+
+        } else if keys.just_pressed(KeyCode::KeyD) 
+            || keys.pressed(KeyCode::KeyD) {
+            direction = Some(Direction::RIGHT);
+
         }
         if direction.is_some() {
             commands.entity(entity)
@@ -69,6 +88,7 @@ pub fn character_movement(
             &mut Transform,
             &mut Moving,
             &Direction,
+            &mut AnimationTimer,
             Entity,
         ),
         With<setup::Player>,
@@ -84,20 +104,21 @@ pub fn character_movement(
         mut transform,
         mut moving,
         direction,
+        mut timer,
         entity,
     ) in player.iter_mut() {  
-
         let mut movement_amount = 150.0*time.delta_seconds();
 
-        if moving.distance == 16.0 {
+        if moving.finished {
             commands.entity(entity).remove::<Moving>();
+            timer.reset();
         }
 
         moving.distance += movement_amount;
 
         if moving.distance > 16.0*6.0 {
             movement_amount = movement_amount - moving.distance % 16.0;
-            moving.distance = 16.0;
+            moving.finished = true;
         }
         let mut camera_transform = camera.single_mut();
 

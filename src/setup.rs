@@ -15,7 +15,7 @@ pub fn setup(
     let layout = TextureAtlasLayout::from_grid(Vec2::splat(16.0), 10, 75, None, None);
     let texture_atlas_layout = text_atlas_layouts.add(layout);
     let female: bool = true;
-
+    
     let mut up1 = AnimationIndices::new(vec![3, 4]);
     let mut up2 = AnimationIndices::new(vec![5, 4]);
     let mut left = AnimationIndices::new(vec![7, 6]);
@@ -59,5 +59,36 @@ pub fn setup(
         walking_animations,
         animate::AnimationTimer(Timer::from_seconds(0.2, TimerMode::Repeating)),
         Player,
+    ));
+
+    let texture: Handle<Image> = asset_server.load("./pokemon.png");
+    let layout = TextureAtlasLayout::from_grid(Vec2::splat(16.0), 10, 13, None, None);
+    let texture_atlas_layout = text_atlas_layouts.add(layout);
+    let up1 = AnimationIndices::new(vec![3, 4]);
+    let up2 = AnimationIndices::new(vec![5, 4]);
+    let left = AnimationIndices::new(vec![7, 6]);
+    let down1 = AnimationIndices::new(vec![0, 1]);
+    let down2 = AnimationIndices::new(vec![2, 1]);
+    let right = AnimationIndices::new(vec![9, 8]);    
+
+    let walking_animations = WalkingAnimations::new(
+        up1, up2, left, down1, down2, right
+    );
+    commands.spawn((
+        SpriteSheetBundle {
+            texture, 
+            atlas: TextureAtlas {
+                layout: texture_atlas_layout,
+                index: walking_animations.down1.indices[1],
+            },
+            transform: Transform {
+                translation: Vec3::new(32.0*6.0, 32.0*6.0, 0.1),
+                scale: Vec3::splat(6.0),
+                rotation: Quat::from_vec4(Vec4::splat(0.0)),
+            },
+            ..default()
+        },
+        walking_animations,
+        animate::AnimationTimer(Timer::from_seconds(0.2, TimerMode::Repeating)),
     ));
 }
